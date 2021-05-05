@@ -18,7 +18,6 @@ public class ContaSaldo implements Serializable {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	//@Temporal(TemporalType.TIMESTAMP)
 	@Column(name = "data_evento", nullable = false)
 	private Date dataEvento;
 
@@ -35,6 +34,14 @@ public class ContaSaldo implements Serializable {
 	}
 
 	public ContaSaldo(Long id, Date dataEvento, Double saldo, boolean status, Long contaId) {
+		this.id = id;
+		this.dataEvento = dataEvento;
+		this.saldo = saldo;
+		this.status = status;
+		this.contaId = contaId;
+	}
+
+	public ContaSaldo(Date dataEvento, Double saldo, boolean status, Long contaId) {
 		this.id = id;
 		this.dataEvento = dataEvento;
 		this.saldo = saldo;

@@ -3,6 +3,7 @@ package br.com.impacta.ibpf.contasaldo.resources;
 import br.com.impacta.ibpf.contasaldo.entities.ContaSaldo;
 import br.com.impacta.ibpf.contasaldo.repositories.ContaSaldoRepository;
 
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 
@@ -11,6 +12,7 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -47,6 +49,42 @@ public class ContaSaldoResource {
 	public ResponseEntity<ContaSaldo> findByContaIni(@RequestParam("contaId") Long conta) {
 		List<ContaSaldo> listaContaSaldo = contaSaldoRepository.findByContaSListFirst(conta);
 		return ResponseEntity.ok(listaContaSaldo.get(0));
+	}
+
+	@PostMapping(value = "/lancaCredito")
+	public ResponseEntity<ContaSaldo> lancCre(@RequestParam("contaId") Long conta, @RequestParam("valor") BigDecimal valor) {
+		Date dataEvento = new Date();
+
+		List<ContaSaldo> listaContaSaldo = contaSaldoRepository.findByContaSList(conta, dataEvento);
+		ContaSaldo contaSaldo = listaContaSaldo.get(0);
+
+		if (contaSaldo.getDataEvento().before(dataEvento)) {
+			ContaSaldo contaSaldoNovo = new ContaSaldo(0L, dataEvento, (contaSaldo.getSaldo() + valor.doubleValue()), Boolean.TRUE, conta);
+			contaSaldo = contaSaldoRepository.save(contaSaldoNovo);
+		} else {
+			contaSaldo.setSaldo(contaSaldo.getSaldo() + valor.doubleValue());
+			contaSaldo = contaSaldoRepository.save(contaSaldo);
+		}
+
+		return ResponseEntity.ok(contaSaldo);
+	}
+
+	@PostMapping(value = "/lancaDebito")
+	public ResponseEntity<ContaSaldo> lancDeb(@RequestParam("contaId") Long conta, @RequestParam("valor") BigDecimal valor) {
+		Date dataEvento = new Date();
+
+		List<ContaSaldo> listaContaSaldo = contaSaldoRepository.findByContaSList(conta, dataEvento);
+		ContaSaldo contaSaldo = listaContaSaldo.get(0);
+
+		if (contaSaldo.getDataEvento().before(dataEvento)) {
+			ContaSaldo contaSaldoNovo = new ContaSaldo(0L, dataEvento, (contaSaldo.getSaldo()  - valor.doubleValue()), Boolean.TRUE, conta);
+			contaSaldo = contaSaldoRepository.save(contaSaldoNovo);
+		} else {
+			contaSaldo.setSaldo(contaSaldo.getSaldo() - valor.doubleValue());
+			contaSaldo = contaSaldoRepository.save(contaSaldo);
+		}
+
+		return ResponseEntity.ok(contaSaldo);
 	}
 
 }
